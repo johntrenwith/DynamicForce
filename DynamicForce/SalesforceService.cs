@@ -5,6 +5,7 @@ using Salesforce.Force;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -89,9 +90,29 @@ namespace DynamicForce
         
         public async Task<bool> InsertUpdateObject(dynamic dynamicObject, string objectName)
         {
-            SuccessResponse response = string.IsNullOrEmpty(dynamicObject.Id) ?
-               (await _client.CreateAsync(objectName, dynamicObject)) :
-               (await _client.UpdateAsync(objectName, dynamicObject.Id, dynamicObject));
+            var expandoObject = new ExpandoObject() as IDictionary<string, Object>;
+            PropertyInfo[] propertyInfos = dynamicObject.GetType().GetProperties();
+            string id = "";
+            for (int i = 0; i < propertyInfos.Length; i++)
+            {
+                var propertyValue = propertyInfos[i].GetValue(dynamicObject);
+                if (propertyInfos[i].Name == "Id")
+                {
+                    id = propertyValue;
+                }
+                else
+                {
+                    expandoObject.Add(propertyInfos[i].Name, propertyValue);
+                }
+            }
+
+            object customer = "";
+            expandoObject.TryGetValue("Customer__c", out customer);
+            string c = customer.ToString();
+            
+            SuccessResponse response = string.IsNullOrEmpty(id.ToString()) ?
+               await _client.CreateAsync(objectName, expandoObject) :
+               await _client.UpdateAsync(objectName, id.ToString(), expandoObject);
 
             if (!response.Success)
             {
@@ -104,12 +125,6 @@ namespace DynamicForce
         public async Task<bool> DeleteObject(string id, string objectName)
         {
             bool response = await _client.DeleteAsync(objectName, id);
-
-            if (!response)
-            {
-                _log.Error("Failed to delete record " + id);
-            }
-
             return response;
         }
 
