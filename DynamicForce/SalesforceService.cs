@@ -152,7 +152,7 @@ namespace DynamicForce
             return JsonConvert.DeserializeObject<ObjectDescription>(objectDescription);
         }
 
-        private static string ConvertToForceDateTime(DateTime dateTime)
+        public static string ConvertToForceDateTime(DateTime dateTime)
         {
             dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
             return dateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
