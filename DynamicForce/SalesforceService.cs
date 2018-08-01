@@ -62,11 +62,11 @@ namespace DynamicForce
 
         public async Task<List<ExpandoObject>> GetObjectsByFilterCriterion(string objectName, string filterField, string filterValue)
         {
-            string query = GetObjectQuery(objectName).Result + " WHERE " + filterField + " = '" + filterValue + "'";
+            string query = GetObjectQuery(objectName).Result + " WHERE " + filterField + " = '" + filterValue + "' ORDER BY Id";
             QueryResult<ExpandoObject> results = await _client.QueryAsync<ExpandoObject>(query);
-            return results.TotalSize > 0 ? results.Records : null;           
+            return results.TotalSize > 0 ? results.Records : null;
         }
-       
+
         public async Task<List<ExpandoObject>> GetObjectsByQuery(string query)
         {
             QueryResult<ExpandoObject> results = await _client.QueryAsync<ExpandoObject>(query);
@@ -75,44 +75,37 @@ namespace DynamicForce
             objects.AddRange(results.Records);
 
             if (!string.IsNullOrEmpty(results.NextRecordsUrl))
-            {             
+            {
                 while (true)
                 {
                     var continuationResults = await _client.QueryContinuationAsync<ExpandoObject>(nextRecordsUrl);
                     objects.AddRange(continuationResults.Records);
                     nextRecordsUrl = continuationResults.NextRecordsUrl;
-                    if (string.IsNullOrEmpty(nextRecordsUrl)) break;  
+                    if (string.IsNullOrEmpty(nextRecordsUrl)) break;
                 }
             }
 
             return objects;
         }
-        
-        public async Task<bool> InsertUpdateObject(dynamic dynamicObject, string objectName)
+
+        public async Task<bool> InsertUpdateObject(object myObject, string objectName)
         {
-            var expandoObject = new ExpandoObject() as IDictionary<string, Object>;
-            PropertyInfo[] propertyInfos = dynamicObject.GetType().GetProperties();
             string id = "";
-            for (int i = 0; i < propertyInfos.Length; i++)
+            foreach (KeyValuePair<string, object> entry in (IDictionary<string, object>)myObject)
             {
-                var propertyValue = propertyInfos[i].GetValue(dynamicObject);
-                if (propertyInfos[i].Name == "Id")
+                if (entry.Key == "Id")
                 {
-                    id = propertyValue;
-                }
-                else
-                {
-                    expandoObject.Add(propertyInfos[i].Name, propertyValue);
+                    if(entry.Value != null)
+                    { 
+                        id = entry.Value.ToString();
+                    }
+                    break;
                 }
             }
 
-            object customer = "";
-            expandoObject.TryGetValue("Customer__c", out customer);
-            string c = customer.ToString();
-            
-            SuccessResponse response = string.IsNullOrEmpty(id.ToString()) ?
-               await _client.CreateAsync(objectName, expandoObject) :
-               await _client.UpdateAsync(objectName, id.ToString(), expandoObject);
+            SuccessResponse response = string.IsNullOrEmpty(id) ?
+               await _client.CreateAsync(objectName, myObject) :
+               await _client.UpdateAsync(objectName, id.ToString(), myObject);
 
             if (!response.Success)
             {
@@ -121,7 +114,7 @@ namespace DynamicForce
 
             return response.Success;
         }
-                
+
         public async Task<bool> DeleteObject(string id, string objectName)
         {
             bool response = await _client.DeleteAsync(objectName, id);
@@ -156,7 +149,6 @@ namespace DynamicForce
         {
             dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
             return dateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
-        }
-            
+        }   
     }
 }

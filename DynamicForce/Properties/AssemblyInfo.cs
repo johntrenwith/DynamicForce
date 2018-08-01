@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("DynamicForce")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("A wrapper for the Force.com Toolkit for .NET using dynamic types for extensibility")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("John Trenwith")]
 [assembly: AssemblyProduct("DynamicForce")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]

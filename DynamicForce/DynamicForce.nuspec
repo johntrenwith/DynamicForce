@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>DynamicForce</id>
+    <version>1.0</version>
+    <title>DynamicForce</title>
+    <authors>John Trenwith</authors>
+    <owners>John Trenwith</owners>
+    <projectUrl>https://github.com/johntrenwith/DynamicForce</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A wrapper for the Force.com Toolkit for .NET using dynamic types for extensibility</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags></tags>
+  </metadata>
+</package>
