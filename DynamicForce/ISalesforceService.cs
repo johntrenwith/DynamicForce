@@ -14,7 +14,7 @@ namespace DynamicForce
         Task<List<ExpandoObject>> GetObjectsByFilterCriterion(string objectName, string filterField, string filterValue);
         Task<List<ExpandoObject>> GetObjectsByQuery(string query);
         Task<ExpandoObject> GetObjectByQuery(string query);
-        Task<bool> InsertUpdateObject(dynamic dynamicObject, string objectName);
+        Task<bool> InsertUpdateObject(dynamic dynamicObject, string objectName, string id);
         Task<bool> DeleteObject(string id, string objectName);
     }
 }

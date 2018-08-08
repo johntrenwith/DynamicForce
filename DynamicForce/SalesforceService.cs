@@ -88,21 +88,8 @@ namespace DynamicForce
             return objects;
         }
 
-        public async Task<bool> InsertUpdateObject(object myObject, string objectName)
+        public async Task<bool> InsertUpdateObject(object myObject, string objectName, string id)
         {
-            string id = "";
-            foreach (KeyValuePair<string, object> entry in (IDictionary<string, object>)myObject)
-            {
-                if (entry.Key == "Id")
-                {
-                    if(entry.Value != null)
-                    { 
-                        id = entry.Value.ToString();
-                    }
-                    break;
-                }
-            }
-
             SuccessResponse response = string.IsNullOrEmpty(id) ?
                await _client.CreateAsync(objectName, myObject) :
                await _client.UpdateAsync(objectName, id.ToString(), myObject);
