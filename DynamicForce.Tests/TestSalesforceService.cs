@@ -26,20 +26,20 @@ namespace DynamicForce.Tests
                passwordAndToken, false, log, jsonHttpClient, xmlHttpClient);
             ISalesforceService salesforceService = new SalesforceService(connector, log);
             dynamic lead = new ExpandoObject();
-            lead.Id = null;
             lead.FirstName = "Jim";
             lead.LastName = "Robot";
             lead.Email = "fake@news.com";
             lead.Company = "Fake News Inc.";
             using (salesforceService)
             {
-                bool isCreated = await salesforceService.InsertUpdateObject(lead, "Lead");
+                bool isCreated = await salesforceService.InsertUpdateObject(lead, "Lead", "");
                 Assert.IsTrue(isCreated);
             }
         }
+              
 
         [TestMethod]
-        public async Task TestGetObjectByExternalIdentifier()
+        public async Task TestUpdateObject()
         {
             IConnector connector = new Connector(consumerKey, consumerSecret, userName,
                passwordAndToken, false, log, jsonHttpClient, xmlHttpClient);
@@ -48,6 +48,12 @@ namespace DynamicForce.Tests
             {
                 dynamic lead = await salesforceService.GetObjectByExternalIdentifier("Lead", "Email", "fake@news.com");
                 Assert.AreEqual("Fake News Inc.", lead.Company);
+
+                dynamic updatedLead = new ExpandoObject();
+                updatedLead.Company = "Fake News Corp.";
+           
+                bool isUpdated = await salesforceService.InsertUpdateObject(updatedLead, "Lead", lead.Id);
+                Assert.IsTrue(isUpdated);
             }
         }
 
@@ -57,7 +63,7 @@ namespace DynamicForce.Tests
             IConnector connector = new Connector(consumerKey, consumerSecret, userName,
                 passwordAndToken, false, log, jsonHttpClient, xmlHttpClient);
             ISalesforceService salesforceService = new SalesforceService(connector, log);
-            string query = "SELECT Id, Name FROM Lead WHERE Company = 'Fake News Inc.'";
+            string query = "SELECT Id, Name FROM Lead WHERE Company = 'Fake News Corp.'";
 
             using (salesforceService)
             {
@@ -67,7 +73,7 @@ namespace DynamicForce.Tests
                 Assert.AreEqual(lead.FirstName, "Jim");
             }
         }
-
+        
         [TestMethod]
         public async Task TestDeleteObject()
         {
