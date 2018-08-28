@@ -1,12 +1,11 @@
 ﻿using Common.Logging;
-using Newtonsoft.Json;
 using Salesforce.Common.Models.Json;
 using Salesforce.Force;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Reflection;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DynamicForce
@@ -111,25 +110,32 @@ namespace DynamicForce
         public void Dispose() => _client.Dispose();
 
         private async Task<string> GetObjectQuery(string objectName)
-        {
-            ObjectDescription objectDescription = await GetObjectDescription(objectName);
-            StringBuilder stringBuilder = new StringBuilder("SELECT ");
-
-            foreach (Field field in objectDescription.Fields)
-            {
-                stringBuilder.Append(field.Name + ", ");
-            }
-
-            string objectQuery = stringBuilder.ToString();
-            // delete trailing comma and space...
-            return objectQuery.Remove(objectQuery.Length - 2) + " FROM " + objectName;
+        {            
+            return "SELECT " + await GetFieldsListAsync(objectName) + " FROM " + objectName;
         }
 
-        private async Task<ObjectDescription> GetObjectDescription(string objectName)
+        public async Task<string> GetFieldsListAsync(string objectName)
         {
-            string objectDescription = await _connector.DescribeObject("/services/data/"
-                + _connector.ApiVersion + "/sobjects/" + objectName + "/describe/");
-            return JsonConvert.DeserializeObject<ObjectDescription>(objectDescription);
+            IDictionary<string, object> objectProperties = await _client.DescribeAsync<ExpandoObject>(objectName);
+            objectProperties.TryGetValue("fields", out object fields);
+            List<string> objectDescription = new List<string>();
+            foreach (dynamic field in fields as IEnumerable)
+            {
+                objectDescription.Add(((ExpandoObject)(field)).FirstOrDefault(x => x.Key == "name").Value.ToString());
+            }
+            return string.Join(", ", objectDescription);
+        }
+
+        private async Task<IEnumerable<string>> GetObjectDescription(string objectName)
+        {
+            IDictionary<string, object> objectProperties = await _client.DescribeAsync<ExpandoObject>(objectName);
+            objectProperties.TryGetValue("fields", out object fields);
+            List<string> objectDescription = new List<string>();
+            foreach (dynamic field in fields as IEnumerable)
+            {
+                objectDescription.Add(((ExpandoObject)(field)).FirstOrDefault(x => x.Key == "name").Value.ToString());
+            }
+            return objectDescription;
         }
 
         public static string ConvertToForceDateTime(DateTime dateTime)
